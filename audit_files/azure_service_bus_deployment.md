@@ -6,7 +6,7 @@
 
 ## Deployment Summary
 
-We have successfully deployed an Azure Service Bus infrastructure to support the Inter_IDE_Communication_Framework project. This messaging service will enable reliable communication between different IDE instances, particularly focusing on VS Code and Cursor integration.
+An Azure Service Bus infrastructure has been successfully deployed to support the Inter_IDE_Communication_Framework project. This messaging service enables reliable communication between different IDE instances (VS Code and Cursor) with a focus on end-of-day governance audit functionality.
 
 ## Resource Details
 
@@ -32,37 +32,22 @@ We have successfully deployed an Azure Service Bus infrastructure to support the
    | ide-communication | cursor-ide-sub | Direct IDE-to-IDE messaging for Cursor |
    | ide-communication | vscode-ide-sub | Direct IDE-to-IDE messaging for VS Code |
 
-## Architecture Overview
+## Implementation Details
 
-The implemented architecture follows a publish-subscribe pattern:
-
-```
-┌───────────────┐                  ┌───────────────┐
-│               │                  │               │
-│   VS Code     │◄───────────────►│   Azure       │
-│   Extension   │                  │   Service Bus │
-│               │                  │               │
-└───────────────┘                  └───────┬───────┘
-                                          │
-                                          │
-┌───────────────┐                  ┌──────▼───────┐
-│               │                  │              │
-│   Cursor      │◄───────────────►│  Governance  │
-│   Extension   │                  │  Audit Logs  │
-│               │                  │              │
-└───────────────┘                  └──────────────┘
-```
+The implementation follows Azure best practices with:
+- Premium tier for high-throughput requirements
+- Duplicate detection enabled (10-minute window)
+- Session support for maintaining conversation context
+- Microsoft Entra ID authentication (no connection strings)
 
 ## Integration Instructions for Cursor
-
-To integrate with the Azure Service Bus from Cursor, use the following connection details:
 
 ### Connection Information
 - **Namespace**: `inter-ide-servicebus.servicebus.windows.net`
 - **Authentication**: Microsoft Entra ID (formerly Azure AD)
 - **Topics**: 
-  - `governance-audits` - For sending and receiving governance audit reports
-  - `ide-communication` - For direct communication with other IDE instances
+  - `governance-audits` - For end-of-day audit reports
+  - `ide-communication` - For direct communication with VS Code
 
 ### Integration Code Example
 
@@ -71,7 +56,7 @@ To integrate with the Azure Service Bus from Cursor, use the following connectio
 import { ServiceBusClient } from "@azure/service-bus";
 import { DefaultAzureCredential } from "@azure/identity";
 
-// Use managed identity or DefaultAzureCredential for authentication
+// Use managed identity for authentication (secure, no credentials in code)
 const credential = new DefaultAzureCredential();
 const sbClient = new ServiceBusClient(
   "inter-ide-servicebus.servicebus.windows.net",
@@ -81,7 +66,7 @@ const sbClient = new ServiceBusClient(
 // Create sender for governance audits
 const governanceSender = sbClient.createSender("governance-audits");
 
-// Create receiver for IDE communication
+// Create receiver for listening to IDE communications
 const ideReceiver = sbClient.createReceiver("ide-communication", "cursor-ide-sub");
 
 // Function to send end-of-day audit
@@ -94,7 +79,7 @@ async function sendEndOfDayAudit(auditData) {
   console.log("End-of-day audit sent successfully");
 }
 
-// Process incoming messages
+// Process incoming messages from other IDEs
 async function processMessages() {
   ideReceiver.subscribe({
     processMessage: async (message) => {
@@ -107,36 +92,45 @@ async function processMessages() {
   });
   console.log("Now listening for messages from other IDEs");
 }
-
-// Execute functions
-processMessages().catch(console.error);
 ```
 
-## Security Considerations
+## Message Schema
 
-1. **Authentication**: The service is configured to use Microsoft Entra ID authentication (not connection strings)
-2. **Network Security**: Public network access is enabled, but should be restricted in production
-3. **Message Encryption**: Messages are encrypted in transit using TLS 1.2
-4. **Role-Based Access**: Custom roles should be created to limit access to specific topics
+For governance audit messages:
 
-## Next Steps for Cursor
+```json
+{
+  "timestamp": "2025-05-12T06:00:00Z",
+  "source": "cursor",
+  "auditType": "end-of-day",
+  "findings": [
+    {
+      "category": "security",
+      "level": "warning",
+      "description": "Potential credential exposure in commit abc123",
+      "location": "file.js:25"
+    }
+  ],
+  "summary": "3 warnings, 0 critical issues found"
+}
+```
+
+## Next Steps for Cursor Implementation
 
 1. Implement Azure Identity authentication in the Cursor extension
-2. Create message models for governance audits
-3. Set up Azure Service Bus SDK integration
-4. Implement message processing logic for both governance audits and IDE communication
-5. Test bidirectional communication with VS Code
+2. Add message serialization/deserialization for governance audit format
+3. Set up daily scheduled job for end-of-day audit report generation
+4. Create message processing logic for both outbound and inbound communications
+5. Implement error handling with retry logic
 
-## Monitoring and Maintenance
+## Security and Performance Considerations
 
-The Service Bus can be monitored through Azure Monitor. Key metrics to watch include:
-- Message throughput
-- Message count
-- Error messages
-- Server errors
-
-Alerts should be set up for any sustained error conditions.
+1. **Authentication**: Using Microsoft Entra ID with Managed Identities
+2. **Message Security**: All data encrypted in transit with TLS 1.2
+3. **Performance**: Premium tier supports high throughput and low latency
+4. **Reliability**: Automatic retry with exponential backoff recommended
+5. **Monitoring**: Implement Azure Monitor alerts for error conditions
 
 ---
 
-This deployment was completed by GitHub Copilot on May 12, 2025.
+This deployment was completed on May 12, 2025.
