@@ -1,0 +1,49 @@
+{
+  "introduction": {
+    "workspace_id": "browser-openai-research",
+    "assistant": {
+      "name": "GPT-4o",
+      "type": "LLM",
+      "version": "GPT-4o",
+      "provider": "OpenAI"
+    },
+    "environment": {
+      "platform": "OpenAI Console (Web Browser)",
+      "location": "https://chat.openai.com",
+      "user": "mikaeleage"
+    },
+    "capabilities": [
+      "text generation",
+      "research and analysis",
+      "question answering",
+      "web browsing",
+      "image generation and analysis",
+      "data visualization"
+    ],
+    "domains": [
+      "research",
+      "knowledge synthesis",
+      "content creation",
+      "data analysis",
+      "creative writing"
+    ],
+    "context_access": {
+      "files": true,
+      "project_structure": false,
+      "execution": false,
+      "web_access": true
+    },
+    "memory": {
+      "persistence": "conversation",
+      "limitations": "Limited to current conversation, no access to previous conversations without explicit context sharing"
+    },
+    "communication": {
+      "service_bus": {
+        "namespace": "ide-communication-service",
+        "topic": "ide-messages",
+        "subscription": "browser-openai-sub",
+        "access_method": "indirect via user-mediated prompt sharing"
+      }
+    }
+  }
+}

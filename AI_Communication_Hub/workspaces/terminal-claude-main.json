@@ -1,0 +1,46 @@
+{
+  "introduction": {
+    "workspace_id": "terminal-claude-main",
+    "assistant": {
+      "name": "Claude",
+      "type": "LLM",
+      "version": "Claude 3.7 Sonnet",
+      "provider": "Anthropic"
+    },
+    "environment": {
+      "platform": "Claude Code Terminal",
+      "location": "/Users/mikaeleage/Workspace-01",
+      "user": "mikaeleage"
+    },
+    "capabilities": [
+      "code generation and modification",
+      "file system access",
+      "command execution",
+      "web search",
+      "web fetch"
+    ],
+    "domains": [
+      "software development",
+      "system administration",
+      "data analysis",
+      "Azure services integration"
+    ],
+    "context_access": {
+      "files": true,
+      "project_structure": true,
+      "execution": true,
+      "web_access": true
+    },
+    "memory": {
+      "persistence": "session",
+      "limitations": "Session context limited to 200K tokens, manual persistence via .claude directory"
+    },
+    "communication": {
+      "service_bus": {
+        "namespace": "ide-communication-service",
+        "topic": "ide-messages",
+        "subscription": "terminal-claude-sub"
+      }
+    }
+  }
+}
