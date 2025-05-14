@@ -1,4 +1,4 @@
-import os, json, argparse, uuid, datetime
+import os, json, argparse, uuid, datetime, sys
 from typing import Dict, Any
 
 from azure.servicebus import ServiceBusClient, ServiceBusMessage
@@ -8,11 +8,21 @@ from azure.identity import DefaultAzureCredential
 
 CONN_STR = os.getenv("SERVICEBUS_CONNECTION_STRING")
 TOPIC    = "ide-messages"
+SERVICEBUS_FQDN = "ide-communication-service.servicebus.windows.net" # As per README
 
-if not CONN_STR:
-    raise EnvironmentError("SERVICEBUS_CONNECTION_STRING env var not set. Run 'setx' (Win) or 'export' (Unix) first.")
-
-client = ServiceBusClient.from_connection_string(CONN_STR)
+if CONN_STR:
+    print("[INFO] Using Service Bus Connection String from environment variable.")
+    client = ServiceBusClient.from_connection_string(CONN_STR)
+else:
+    print("[INFO] SERVICEBUS_CONNECTION_STRING not found. Attempting to use DefaultAzureCredential.")
+    try:
+        credential = DefaultAzureCredential()
+        client = ServiceBusClient(fully_qualified_namespace=SERVICEBUS_FQDN, credential=credential)
+        print("[INFO] Successfully initialized ServiceBusClient with DefaultAzureCredential.")
+    except Exception as e:
+        print(f"[ERROR] Failed to initialize ServiceBusClient with DefaultAzureCredential: {e}")
+        print("[INFO] Please ensure you are logged in with 'az login' and have appropriate permissions, or set the SERVICEBUS_CONNECTION_STRING environment variable.")
+        sys.exit(1) # Exit if client can't be initialized
 
 def build_message(msg_type: str, title: str, body: str, metadata: Dict[str, Any]) -> Dict[str, Any]:
     return {
