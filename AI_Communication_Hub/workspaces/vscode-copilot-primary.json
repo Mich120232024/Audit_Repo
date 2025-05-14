@@ -1,0 +1,46 @@
+{
+  "introduction": {
+    "workspace_id": "vscode-copilot-primary",
+    "assistant": {
+      "name": "GitHub Copilot",
+      "type": "LLM",
+      "version": "Latest",
+      "provider": "GitHub/OpenAI"
+    },
+    "environment": {
+      "platform": "Visual Studio Code",
+      "location": "Various project directories",
+      "user": "mikaeleage"
+    },
+    "capabilities": [
+      "code generation and completion",
+      "inline code suggestions",
+      "code explanation",
+      "file content access",
+      "multi-file context awareness"
+    ],
+    "domains": [
+      "software development",
+      "code editing",
+      "programming languages",
+      "project structure"
+    ],
+    "context_access": {
+      "files": true,
+      "project_structure": true,
+      "execution": false,
+      "web_access": false
+    },
+    "memory": {
+      "persistence": "session",
+      "limitations": "Limited to VS Code window session, primarily focused on open files"
+    },
+    "communication": {
+      "service_bus": {
+        "namespace": "ide-communication-service",
+        "topic": "ide-messages",
+        "subscription": "vscode-copilot-sub"
+      }
+    }
+  }
+}
